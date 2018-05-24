@@ -1,1 +1,53 @@
-/home/retep/site_create
+#!/bin/sh
+if [ -z "$1" ]; then
+	echo "Please specify a website."
+  exit
+elif ! [ $(id -u) = 0 ]; then
+  echo "Please run using sudo."
+  exit
+fi
+
+mkdir -p $HOME/www/$1;
+read -p "Would you like to enable php? [Y/n]: " enable_php
+if [ "$enable_php" = "y" ] || [ "$enable_php" = "Y" ]; then
+	echo "server {
+	listen 80;
+	root $HOME/www/$1;
+	server_name $1 www.$1;
+	index index.php index.html;
+	location / {
+		try_files \$uri \$uri/ =404;
+	}
+	location ~ \\.php$ {
+		include snippets/fastcgi-php.conf;
+		fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+	}
+
+	location ~ /\\.ht {
+		deny all;
+	}
+}" >> /etc/nginx/sites-available/$1
+else
+	echo "server {
+		listen 80;
+		root $HOME/www/$1;
+		server_name $1 www.$1;
+		index index.html;
+		location / {
+			try_files \$uri \$uri/ =404;
+		}
+	}" >> /etc/nginx/sites-available/$1
+fi
+if [ ! -f $HOME/www/$1/index.html ]; then
+  echo "<html>
+  <head>
+    <title>$1</title>
+  </head>
+  <body>
+    <h1>Welcome to $1</h1>
+  </body>
+</html>" >> $HOME/www/$1/index.html
+fi
+ln -s /etc/nginx/sites-available/$1 /etc/nginx/sites-enabled/
+systemctl restart nginx
+chown $SUDO_USER:$SUDO_USER -R $HOME/www

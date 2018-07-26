@@ -8,7 +8,11 @@ elif ! [ $(id -u) = 0 ]; then
 fi
 
 mkdir -p $HOME/www/$1;
-read -p "Would you like to enable php? [Y/n]: " enable_php
+if [ -z "$2" ]; then
+  read -p "Would you like to enable php? [Y/n]: " enable_php
+else
+  enable_php=$2
+fi
 if [ "$enable_php" = "y" ] || [ "$enable_php" = "Y" ]; then
 	echo "server {
 	listen 80;

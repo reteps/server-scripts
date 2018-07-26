@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ -z "$3" ]; then
+  echo "usage: create_site email password domain"
+  exit
+fi
+email=$1
+password=$2
+domain=$3
+./freenom-register $email $password $domain
+sudo ./nginx_create $domain no
+./fdu record update $email $password $domain -t A
+./fdu record update $email $password $domain -t A -n www
